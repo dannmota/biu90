@@ -446,7 +446,7 @@ async function api(metodo, corpo) {
     // text/plain evita o preflight CORS, que o Apps Script não responde
     ? { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(corpo) }
     : { method: 'GET' };
-  const url = metodo === 'GET' ? API_URL + '?c=' + encodeURIComponent(codigo) : API_URL;
+  const url = metodo === 'GET' ? API_URL + '?codigo=' + encodeURIComponent(codigo) : API_URL;
   const resp = await fetch(url, opts);
   if (!resp.ok) throw new Error('http ' + resp.status);
   return resp.json();
@@ -501,7 +501,7 @@ $('enviar').addEventListener('click', async () => {
   btn.disabled = true; btn.textContent = 'Enviando…';
   st.textContent = ''; st.classList.remove('erro');
   try {
-    const res = await api('POST', { c: codigo, resposta: escolha, qtd: escolha === 'vou' ? (convite.max > 1 ? qtd : 1) : 0 });
+    const res = await api('POST', { codigo: codigo, resposta: escolha, qtd: escolha === 'vou' ? (convite.max > 1 ? qtd : 1) : 0 });
     if (!res.ok) throw new Error(res.erro || 'erro');
     convite = res.convite;
     telaRespondido();
