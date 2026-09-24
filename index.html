@@ -327,7 +327,7 @@
       <p class="falta" id="falta"></p>
       <div class="acoes">
         <a class="btn" id="mapa" target="_blank" rel="noopener">Abrir no mapa</a>
-        <a class="btn" id="agenda" target="_blank" rel="noopener">Salvar na agenda</a>
+        <a class="btn" id="agenda">Salvar na agenda</a>
       </div>
     </section>
 
@@ -400,13 +400,39 @@ const EVENTO = {
 document.getElementById('mapa').href =
   'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(EVENTO.endereco);
 
-document.getElementById('agenda').href =
-  'https://calendar.google.com/calendar/render?action=TEMPLATE' +
-  '&text=' + encodeURIComponent(EVENTO.titulo) +
-  '&dates=' + EVENTO.inicio + '/' + EVENTO.fim +
-  '&ctz=' + encodeURIComponent(EVENTO.fuso) +
-  '&location=' + encodeURIComponent(EVENTO.endereco) +
-  '&details=' + encodeURIComponent('Buffet: crepes e saladas. Sua presença será o melhor presente!');
+/* Agenda: cada plataforma abre o próprio app de calendário
+   - iPhone: arquivo .ics -> tela nativa "Adicionar ao calendário"
+   - Android: intent de "novo evento" -> app de agenda padrão (Google, Samsung...),
+     com o .ics como plano B se o navegador não souber abrir o intent
+   - Computador: Google Agenda na web */
+(function agenda() {
+  const el = document.getElementById('agenda');
+  const ua = navigator.userAgent;
+  const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const android = /Android/i.test(ua);
+  const ics = new URL('convite.ics', location.href).href;
+
+  if (ios) {
+    el.href = ics;
+  } else if (android) {
+    const q = (s) => encodeURIComponent(s);
+    el.href = 'intent://com.android.calendar/events#Intent;scheme=content;' +
+      'action=android.intent.action.INSERT;' +
+      'S.title=' + q(EVENTO.titulo) + ';' +
+      'l.beginTime=1796499000000;l.endTime=1796513400000;' +
+      'S.eventLocation=' + q(EVENTO.endereco) + ';' +
+      'S.description=' + q('Buffet: crepes e saladas. Sua presença será o melhor presente!') + ';' +
+      'S.browser_fallback_url=' + q(ics) + ';end';
+  } else {
+    el.target = '_blank'; el.rel = 'noopener';
+    el.href = 'https://calendar.google.com/calendar/render?action=TEMPLATE' +
+      '&text=' + encodeURIComponent(EVENTO.titulo) +
+      '&dates=' + EVENTO.inicio + '/' + EVENTO.fim +
+      '&ctz=' + encodeURIComponent(EVENTO.fuso) +
+      '&location=' + encodeURIComponent(EVENTO.endereco) +
+      '&details=' + encodeURIComponent('Buffet: crepes e saladas. Sua presença será o melhor presente!');
+  }
+})();
 
 (function contagem() {
   const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
